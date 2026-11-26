@@ -1,0 +1,42 @@
+name: Build Godot Android Editor with AI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v4
+
+      - name: Setup Python and SCons
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install scons
+
+      - name: Setup Java and Android SDK/NDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;26.3.11579264"
+
+      - name: Integrate AI Engine (llama.cpp)
+        run: |
+          mkdir -p modules/ai_engine
+          git clone --depth 1 https://github.com modules/ai_engine/llama_cpp
+
+      - name: Build Godot Android APK
+        env:
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}/ndk/26.3.11579264
+        run: |
+          scons platform=android target=editor arch=arm64 generate_apk=yes -j$(nproc)
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Godot-AI-Android-Editor
+          path: bin/*.apk
