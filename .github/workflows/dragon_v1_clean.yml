@@ -421,7 +421,8 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleEditorDebug
           mkdir -p ../../../bin_final
-          find app/build/outputs/apk -name "*.apk" -exec cp {} ../../../bin_final/ \;
+                    find . -name "*.apk" -exec cp {} ../../../bin_final/ \; || true
+
           find ../../../bin -name "*.apk" -exec cp {} ../../../bin_final/ \; || true
 
       - name: Upload APK
